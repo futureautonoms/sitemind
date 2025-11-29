@@ -39,11 +39,32 @@ builder.Services.AddScoped<IN8nClient, N8nClient>();
 // Register Ingestion Job
 builder.Services.AddScoped<IngestWebsiteJob>();
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173", 
+                "http://localhost:3000", 
+                "http://localhost:8080",
+                "https://sitemind.futureautonoms.com",
+                "http://sitemind.futureautonoms.com"
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
 // Note: UseHttpsRedirection removed for testing - can cause header issues
 // app.UseHttpsRedirection();
+
+// Configure CORS
+app.UseCors("AllowFrontend");
 
 // Add Organization Middleware for Multi-Tenancy (must be early in pipeline)
 app.UseMiddleware<OrganizationMiddleware>();

@@ -2,6 +2,11 @@
 
 Website içeriklerini vector database'e alan ve AI destekli RAG (Retrieval-Augmented Generation) chat servisleri sunan SaaS platformu.
 
+## 🌐 Domain Yapılandırması
+
+- **Frontend**: `sitemind.futureautonoms.com`
+- **API**: `sitemindapi.futureautonoms.com`
+
 ## 🏗️ Mimari
 
 SiteMind, mikroservis mimarisi kullanarak geliştirilmiş, strict multi-tenancy (shared database) destekleyen bir platformdur.
@@ -50,6 +55,14 @@ cd client/sitemind-client
 npm install
 npm run dev
 ```
+
+### Production Deployment
+
+Production ortamında:
+- Frontend domain'i: `sitemind.futureautonoms.com`
+- API domain'i: `sitemindapi.futureautonoms.com`
+- Frontend, API'ye doğrudan `https://sitemindapi.futureautonoms.com/api` üzerinden bağlanır
+- Tüm backend servisleri CORS ayarları ile frontend domain'ini destekler
 
 ## 📚 Dokümantasyon
 

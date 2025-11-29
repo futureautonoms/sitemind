@@ -10,10 +10,31 @@ builder.Services.AddEndpointsApiExplorer();
 // Add SiteMind DbContext
 builder.Services.AddSiteMindDbContext(builder.Configuration);
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173", 
+                "http://localhost:3000", 
+                "http://localhost:8080",
+                "https://sitemind.futureautonoms.com",
+                "http://sitemind.futureautonoms.com"
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
 app.UseHttpsRedirection();
+
+// Configure CORS
+app.UseCors("AllowFrontend");
 
 // Add Organization Middleware for Multi-Tenancy
 app.UseMiddleware<OrganizationMiddleware>();
