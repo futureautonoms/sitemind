@@ -1,0 +1,115 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: sitemind-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: sitemind
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sitemind-network
+
+  sitemind-auth:
+    build:
+      context: ./server
+      dockerfile: sitemind-auth/Dockerfile
+    container_name: sitemind-auth
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5001
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=sitemind;Username=postgres;Password=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sitemind-network
+
+  sitemind-ingestion:
+    build:
+      context: ./server
+      dockerfile: sitemind-ingestion/Dockerfile
+    container_name: sitemind-ingestion
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5002
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=sitemind;Username=postgres;Password=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sitemind-network
+
+  sitemind-rag:
+    build:
+      context: ./server
+      dockerfile: sitemind-rag/Dockerfile
+    container_name: sitemind-rag
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5003
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=sitemind;Username=postgres;Password=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sitemind-network
+
+  sitemind-gateway:
+    build:
+      context: ./server
+      dockerfile: sitemind-gateway/Dockerfile
+    container_name: sitemind-gateway
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    depends_on:
+      - sitemind-auth
+      - sitemind-ingestion
+      - sitemind-rag
+    networks:
+      - sitemind-network
+
+  sitemind-client:
+    build:
+      context: ./client/sitemind-client
+      dockerfile: Dockerfile
+    container_name: sitemind-client
+    volumes:
+      - client_dist:/usr/share/nginx/html
+    networks:
+      - sitemind-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: sitemind-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - client_dist:/usr/share/nginx/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - sitemind-client
+      - sitemind-gateway
+    networks:
+      - sitemind-network
+
+volumes:
+  postgres_data:
+    name: sitemind-postgres-data
+  client_dist:
+    name: sitemind-client-dist
+
+networks:
+  sitemind-network:
+    name: sitemind-network
+    driver: bridge
+

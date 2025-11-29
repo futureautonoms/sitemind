@@ -1,0 +1,6 @@
+@sitemind_rag_HostAddress = http://localhost:5042
+
+GET {{sitemind_rag_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

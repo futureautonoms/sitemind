@@ -1,0 +1,6 @@
+@sitemind_ingestion_HostAddress = http://localhost:5055
+
+GET {{sitemind_ingestion_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
