@@ -53,10 +53,19 @@ namespace sitemind_shared.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("KeywordsJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("MarkdownContent")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("RawContent")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Summary")
                         .HasColumnType("text");
 
                     b.Property<string>("Url")

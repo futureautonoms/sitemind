@@ -14,16 +14,13 @@ namespace sitemind_ingestion.Controllers;
 public class WebsitesController : ControllerBase
 {
     private readonly SiteMindDbContext _context;
-    private readonly IBackgroundJobClient _backgroundJobClient;
     private readonly IOrganizationProvider _organizationProvider;
 
     public WebsitesController(
         SiteMindDbContext context,
-        IBackgroundJobClient backgroundJobClient,
         IOrganizationProvider organizationProvider)
     {
         _context = context;
-        _backgroundJobClient = backgroundJobClient;
         _organizationProvider = organizationProvider;
     }
 
@@ -53,7 +50,7 @@ public class WebsitesController : ControllerBase
     public async Task<ActionResult<Website>> CreateWebsite(CreateWebsiteRequest request)
     {
         var organizationId = _organizationProvider.GetOrganizationId();
-        
+
         var website = new Website
         {
             Id = Guid.NewGuid(),
@@ -66,10 +63,6 @@ public class WebsitesController : ControllerBase
 
         _context.Websites.Add(website);
         await _context.SaveChangesAsync();
-
-        // Enqueue ingestion job
-        _backgroundJobClient.Enqueue<IngestWebsiteJob>(
-            job => job.ExecuteAsync(website.Id, organizationId, website.BaseUrl));
 
         return CreatedAtAction(nameof(GetWebsite), new { id = website.Id }, website);
     }

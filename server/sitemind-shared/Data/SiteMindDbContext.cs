@@ -69,6 +69,9 @@ public class SiteMindDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Url).IsRequired().HasMaxLength(2000);
             entity.Property(e => e.RawContent).HasColumnType("text");
+            entity.Property(e => e.MarkdownContent).HasColumnType("text");
+            entity.Property(e => e.Summary).HasColumnType("text");
+            entity.Property(e => e.KeywordsJson).HasColumnType("text");
             entity.Property(e => e.VectorStatus).IsRequired();
             entity.Property(e => e.OrganizationId).IsRequired();
             entity.Property(e => e.CreatedAt).IsRequired();

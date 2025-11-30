@@ -1,0 +1,139 @@
+{
+  "name": "Process Content",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "process-content",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        344
+      ],
+      "id": "1a712d24-dd41-49e0-ae3b-769868b890b7",
+      "name": "Webhook Trigger2",
+      "webhookId": "feb1559a-ba43-4615-bffe-554f93e37673"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.content }}",
+        "options": {
+          "systemMessage": "### GÖREV\nSen, yapılandırılmamış düz metinleri analiz edip bunları yapılandırılmış bir JSON objesine dönüştürme konusunda uzman bir veri işleme asistanısın. Sana verilen metinden hem temiz bir Markdown formatı hem de önemli metadata bilgileri çıkaracaksın.\n\n### KURALLAR\n1.  Metni analiz ederek anlamsal hiyerarşisine uygun (başlıklar için #, listeler için - veya 1.) bir Markdown metni oluştur.\n2.  Metnin genel içeriğini yansıtan 5-7 adet anahtar kelime belirle.\n3.  Metnin tamamını özetleyen 1-2 cümlelik kısa bir özet (summary) yaz.\n4.  Orijinal metne KESİNLİKLE yeni bir bilgi ekleme, mevcut bilgiyi değiştirme veya yorum yapma.\n5.  Çıktın SADECE ve SADECE aşağıda belirtilen formata uygun, geçerli bir JSON objesi olmalı. Başka hiçbir açıklama ekleme.\n\n### İSTENEN JSON FORMATI\n{\n  \"markdown_content\": \"Buraya kurallara göre oluşturulmuş tam Markdown metni gelecek.\",\n  \"metadata\": {\n    \"summary\": \"Buraya 1-2 cümlelik metin özeti gelecek.\",\n    \"keywords\": [\"anahtar kelime 1\", \"anahtar kelime 2\", \"anahtar kelime 3\"]\n  }\n}\n\n### GÖREVE BAŞLA\nŞimdi sana vereceğim metni bu kurallara ve formata göre işle.\nSADECE ÇIKTIYI DÖNDÜR."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        32,
+        240
+      ],
+      "id": "202eff5b-24c0-4d1a-8a35-4a953dabd1c1",
+      "name": "AI Agent Processor"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        104,
+        464
+      ],
+      "id": "25fa510f-021d-4cc2-9016-116b53dd7da1",
+      "name": "Google Gemini Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bzGxhvgenHYUIMmJ",
+          "name": "FA Google Gemini(PaLM) Api account (paid)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// AI çıktısını al\nlet data = $input.first().json.output;\n\n// Olası markdown code block tırnaklarını temizle\ndata = data.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n\n// JSON string'i objeye çevir\ntry {\n  const parsedData = JSON.parse(data);\n  return { json: parsedData };\n} catch (e) {\n  // Eğer AI bozuk JSON dönerse hata fırlatmamak için raw datayı dön\n  return { \n    json: { \n      error: \"JSON parse error\", \n      raw_output: data \n    } \n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        344
+      ],
+      "id": "8b4f4018-5370-4581-b222-da846de0f910",
+      "name": "Parse AI Output"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        608,
+        344
+      ],
+      "id": "2d4c69e7-1016-41fe-a202-bd38624ab428",
+      "name": "Return Processed Data"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Processor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Processor": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Output": {
+      "main": [
+        [
+          {
+            "node": "Return Processed Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "dc2443ba923e7aeb4daaff9baa293a38716a10974a4962e0c410012ccec9062c"
+  }
+}
+

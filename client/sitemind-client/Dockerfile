@@ -12,7 +12,9 @@ RUN npm ci
 # Copy source files
 COPY . .
 
-# Build the application
+# Build the application with local API URL
+# This ensures Docker builds use /api instead of production URL
+ENV VITE_API_BASE_URL=/api
 RUN npm run build
 
 # Final stage: Copy build output to volume

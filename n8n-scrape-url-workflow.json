@@ -1,0 +1,138 @@
+{
+  "name": "Scrape URL",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "scrape-url",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        16
+      ],
+      "id": "d3b90ad2-5dbe-44ba-9ca3-a86cefbb79a1",
+      "name": "Webhook Trigger1",
+      "webhookId": "eefc5577-3022-4cfe-a003-fa9530ac3fde"
+    },
+    {
+      "parameters": {
+        "operation": "scrape",
+        "url": "={{ $json.body.url }}",
+        "scrapeOptions": {
+          "options": {
+            "formats": {
+              "format": [
+                {
+                  "type": "summary"
+                },
+                {
+                  "type": "links"
+                },
+                {
+                  "type": "html"
+                },
+                {}
+              ]
+            },
+            "headers": {},
+            "skipTlsVerification": true,
+            "actions": {
+              "items": [
+                {
+                  "type": "scroll"
+                }
+              ]
+            }
+          }
+        },
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        32,
+        16
+      ],
+      "id": "ef4640c6-a602-4a97-8d74-6ca2c739091b",
+      "name": "Firecrawl Scrape",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "LWzb4GlepSCZvpQm",
+          "name": "Firecrawl account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Firecrawl çıktısını al\nconst data = $input.first().json.data;\n\n// API response için temiz bir obje oluştur\nreturn {\n  json: {\n    success: true,\n    metadata: data.metadata,\n    summary: data.summary,\n    links: data.links,\n    // HTML çok uzun olabilir, isteğe bağlı backend'de işlenebilir\n    html_length: data.html ? data.html.length : 0,\n    html_content: data.html,\n    markdown_content: data.markdown\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        16
+      ],
+      "id": "2b689177-6b58-44ab-8671-8edc36aa25a5",
+      "name": "Format Response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        480,
+        16
+      ],
+      "id": "19febc10-003d-46dc-8d16-563f3ee931b3",
+      "name": "Return Data"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Firecrawl Scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl Scrape": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Return Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "dc2443ba923e7aeb4daaff9baa293a38716a10974a4962e0c410012ccec9062c"
+  }
+}
+
