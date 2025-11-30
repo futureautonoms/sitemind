@@ -176,6 +176,9 @@ namespace sitemind_shared.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ProcessingStartedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
